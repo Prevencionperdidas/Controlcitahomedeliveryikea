@@ -33,7 +33,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left
 <script>
 const $=id=>document.getElementById(id),K='cdviajes1';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const API='PEGA_AQUI_URL_APPS_SCRIPT';
+const API='https://script.google.com/macros/s/AKfycbwFqhQrUXklXPa0lmqtMKd-13YgNGi3NCKqKSt8mQGBkibNJEJZWkMgmKcva-wvFi0/exec';
 const hh=()=>new Date().toTimeString().slice(0,5),hoy=()=>{const d=new Date();return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')};
 let T=[],K2=sessionStorage.getItem('k')||prompt('Clave de acceso')||'';sessionStorage.setItem('k',K2);
 const ST={CITA:['Cita válida','bl'],PATIO:['En patio','wa'],CARGANDO:['Cargando','wa'],LISTO:['Listo para salida','ok'],DESPACHADO:['Despachado','ok'],RECHAZADO:['Rechazado','er'],RETENIDO:['Retenido','er']};
