@@ -21,7 +21,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left
 <main><div class="card"><h2>Buscar viaje</h2><div class="g"><label>Controlador<input id="gd" placeholder="Tu nombre"></label><label>Viajes de hoy<select id="gsel" onchange="gid.value=this.value;buscar()"></select></label><label>ID del viaje<input id="gid" placeholder="HD-20261016-001"></label></div>
 <button class="b" onclick="buscar()">Buscar</button><button class="b o" onclick="camara()">Escanear QR</button><video id="vid" playsinline style="display:none;width:100%;max-width:320px;margin-top:8px"></video></div><div id="gout"></div></main>
 <script>
-const API='PEGA_AQUI_URL_APPS_SCRIPT';
+const API='https://script.google.com/macros/s/AKfycbwFqhQrUXklXPa0lmqtMKd-13YgNGi3NCKqKSt8mQGBkibNJEJZWkMgmKcva-wvFi0/exec';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ST={CITA:['Cita válida','bl'],PATIO:['En patio','wa'],CARGANDO:['Cargando','wa'],LISTO:['Listo para salida','ok'],DESPACHADO:['Despachado','ok'],RECHAZADO:['Rechazado','er'],RETENIDO:['Retenido','er']};
 const tag=s=>`<span class="tag ${ST[s][1]}">${ST[s][0]}</span>`;
