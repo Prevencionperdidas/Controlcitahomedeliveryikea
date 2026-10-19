@@ -31,14 +31,14 @@ function rutOk(r){r=r.replace(/[.\-\s]/g,'').toUpperCase();if(!/^\d{7,8}[\dK]$/.
 /* 1. CITA */
 function formCita(){clearTimeout(poll);$('app').innerHTML=`<form class="card" id="f" onsubmit="return enviar(event)" novalidate><h2>Conductor</h2>
 <label>Nombre completo<input name="cn" autocomplete="name"></label><label>RUT<input name="cr" placeholder="12.345.678-5"></label><label>Teléfono<input name="ct" type="tel" placeholder="+56 9 1234 5678"></label><label>Empresa transportista<input name="em"></label>
-<h2 style="margin-top:18px">Peoneta (si viaja)</h2><label>Nombre completo<input name="pn"></label><label>RUT<input name="pr"></label><label>Teléfono<input name="pt" type="tel"></label>
+<h2 style="margin-top:18px">Peoneta (si viaja)</h2><label>Nombre completo<input name="pn"></label><label>RUT o N° de documento<input name="pr" placeholder="12.345.678-5"></label><label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" name="pext" style="width:auto;margin:0" onchange="this.form.pr.placeholder=this.checked?'Pasaporte o documento':'12.345.678-5'"> Identificación extranjera (sin RUT)</label><label>Teléfono<input name="pt" type="tel"></label>
 <h2 style="margin-top:18px">Vehículo</h2><label>Patente (PPU)<input name="ppu" placeholder="ABCD11" maxlength="6"></label><label>Tipo de vehículo<select name="tv"><option>Camión 3/4</option><option>Camión rampla</option><option>Furgón</option><option>Tracto + semirremolque</option></select></label>
 <div id="err" role="alert"></div><button class="b y" id="bt" style="width:100%;padding:14px">Registrar cita y obtener QR</button>
 <p class="mu">Usamos estos datos solo para el control de acceso y la trazabilidad de la operación en el CD.</p><p class="mu"><a href="#" onclick="recup();return false">Ya registré mi cita en otro dispositivo</a></p></form>`}
 async function enviar(ev){ev.preventDefault();const t=Object.fromEntries([...new FormData($('f'))].map(([k,v])=>[k,String(v).trim().toUpperCase()])),e=$('err');e.textContent='';
 for(const k of ['cn','cr','ct','em','ppu'])if(!t[k]){e.textContent='Completa los datos del conductor y la patente.';return false}
 if(!rutOk(t.cr)){e.textContent='El RUT del conductor no es válido. Revísalo.';return false}
-if(t.pr&&!rutOk(t.pr)){e.textContent='El RUT del peoneta no es válido. Revísalo.';return false}
+if(t.pr&&!t.pext&&!rutOk(t.pr)){e.textContent='El RUT del peoneta no es válido. Revísalo o marca «Identificación extranjera».';return false}
 t.ppu=t.ppu.replace(/\s/g,'');if(!/^([A-Z]{4}\d{2}|[A-Z]{2}\d{4})$/.test(t.ppu)){e.textContent='La patente debe tener formato ABCD11 o AB1234.';return false}
 const b=$('bt');b.disabled=true;b.textContent='Registrando…';
 try{const r=await api({a:'crear',t});if(!r.ok)throw r.error;sv={id:r.id,ppu:r.ppu};guardar();entrar()}catch(x){e.textContent='No pudimos registrar tu cita. Revisa tu conexión e inténtalo de nuevo.';b.disabled=false;b.textContent='Registrar cita y obtener QR'}return false}
