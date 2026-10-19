@@ -1,0 +1,53 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Control de acceso · CD El Sauce</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap"><style>
+:root{--bg:#f3f4f6;--sf:#fff;--tx:#14213d;--mu:#5b6578;--ln:#d9dde5;--bl:#0058a3;--ye:#ffda1a;--ok:#1b7f4b;--wa:#b36b00;--er:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1522;--sf:#172033;--tx:#e8ecf4;--mu:#9aa6bd;--ln:#2a3550;--bl:#6aa7e8;--ok:#4cc38a;--wa:#f0b04a;--er:#ff7b72}}
+*{box-sizing:border-box}input,select,textarea{text-transform:uppercase}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Archivo,system-ui,sans-serif}
+header{background:var(--bl);color:#fff;padding:14px 16px}header h1{margin:0;font-size:19px;font-weight:800}header small{opacity:.85}
+nav{display:flex;gap:4px;margin-top:10px;overflow-x:auto}nav button{flex:1;min-width:92px;border:0;background:rgba(255,255,255,.15);color:#fff;padding:10px 8px;font:600 14px Archivo,sans-serif;border-radius:8px 8px 0 0;cursor:pointer}nav button.on{background:var(--bg);color:var(--tx);box-shadow:inset 0 3px var(--ye)}
+main{max-width:980px;margin:0 auto;padding:16px}section{display:none}section.on{display:block}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:14px;margin-bottom:14px}h2{font-size:17px;margin:0 0 10px}h3{font-size:14px;margin:12px 0 6px;color:var(--mu)}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}label{display:block;font-size:12.5px;color:var(--mu);font-weight:600}
+input,select,textarea{width:100%;margin-top:3px;padding:9px;border:1px solid var(--ln);border-radius:6px;background:var(--bg);color:var(--tx);font:inherit}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--bl);outline-offset:1px}
+.b{border:0;border-radius:6px;padding:10px 14px;font:600 14px Archivo,sans-serif;cursor:pointer;background:var(--bl);color:#fff;margin:8px 6px 0 0}.b.y{background:var(--ye);color:#14213d}.b.r{background:var(--er)}.b.w{background:var(--wa)}.b.o{background:none;color:var(--tx);border:1px solid var(--ln)}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;background:var(--ln)}.tag.ok{background:var(--ok);color:#fff}.tag.wa{background:var(--wa);color:#fff}.tag.er{background:var(--er);color:#fff}.tag.bl{background:var(--bl);color:#fff}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}.kp div{background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:10px}.kp b{display:block;font-size:26px;font-weight:800}.kp span{font-size:12px;color:var(--mu)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--ln)}tr.c{cursor:pointer}tr.c:hover{background:var(--bg)}.sc{overflow-x:auto}
+.qr{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.qr svg{width:150px;height:150px;background:#fff;padding:8px;border-radius:6px}
+.tl{border-left:3px solid var(--bl);margin-left:6px;padding-left:12px}.tl div{margin:6px 0}.tl time{font-weight:800;margin-right:8px}
+.big{font-size:22px;font-weight:800}.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px}.kv span:nth-child(odd){color:var(--mu)}
+.al{padding:8px 10px;border-radius:6px;background:var(--wa);color:#fff;margin:8px 0;font-weight:600}.al.er{background:var(--er)}.al.ok{background:var(--ok)}
+</style></head><body><header><h1>Control de acceso · CD El Sauce</h1><small id="net"></small></header>
+<main><div class="card"><h2>Buscar viaje</h2><div class="g"><label>Controlador<input id="gd" placeholder="Tu nombre"></label><label>Viajes de hoy<select id="gsel" onchange="gid.value=this.value;buscar()"></select></label><label>ID del viaje<input id="gid" placeholder="HD-20261016-001"></label></div>
+<button class="b" onclick="buscar()">Buscar</button><button class="b o" onclick="camara()">Escanear QR</button><video id="vid" playsinline style="display:none;width:100%;max-width:320px;margin-top:8px"></video></div><div id="gout"></div></main>
+<script>
+const API='PEGA_AQUI_URL_APPS_SCRIPT';
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ST={CITA:['Cita válida','bl'],PATIO:['En patio','wa'],CARGANDO:['Cargando','wa'],LISTO:['Listo para salida','ok'],DESPACHADO:['Despachado','ok'],RECHAZADO:['Rechazado','er'],RETENIDO:['Retenido','er']};
+const tag=s=>`<span class="tag ${ST[s][1]}">${ST[s][0]}</span>`;
+const hoy=()=>{const d=new Date();return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')};
+let K2=sessionStorage.getItem('ka')||prompt('Clave de control de acceso')||'',cur;sessionStorage.setItem('ka',K2);
+$('gd').value=sessionStorage.getItem('gn')||'';
+const net=m=>$('net').textContent=m;
+async function api(o){try{const r=await(await fetch(API,{method:'POST',body:JSON.stringify({...o,k:K2})})).json();if(r.error=='clave'){sessionStorage.removeItem('ka');net('Clave incorrecta: recarga la página');r.error='CLAVE INCORRECTA. RECARGA LA PÁGINA.'}return r}catch(e){net('Sin conexión con la planilla');return{ok:false,error:'SIN CONEXIÓN. REINTENTA.'}}}
+async function lista(){const r=await api({a:'acc_list'});if(!r.ok)return;net('Conectado · '+new Date().toTimeString().slice(0,5));$('gsel').innerHTML='<option value="">— viajes de hoy —</option>'+r.t.map(t=>`<option value="${t.id}">${t.id} · ${esc(t.ppu)} · ${ST[t.st][0]}</option>`).join('')}
+async function buscar(){const id=$('gid').value.trim().toUpperCase();if(!id)return;const r=await api({a:'acc_get',id});if(!r.ok){$('gout').innerHTML=`<div class="al er">${esc(r.error)}</div>`;return}cur=r.t;pintar()}
+function pintar(){const t=cur,v=!t.id.includes(hoy());
+let h=`<div class="card"><div class="big">${t.id}</div>${tag(t.st)}${v?'<div class="al er">Cita vencida: no corresponde a hoy</div>':''}<div class="kv" style="margin-top:10px"><span>Conductor</span><span>${esc(t.cn)}</span><span>RUT</span><span>${esc(t.cr)}</span><span>Peoneta</span><span>${esc(t.pn)||'—'}</span><span>Empresa</span><span>${esc(t.em)}</span><span>PPU en cita</span><span><b>${esc(t.ppu)}</b></span></div>`;
+if(t.ruta)h+=`<h3>Datos declarados por el conductor</h3><div class="kv"><span>Ruta / vehículo / andén</span><span>${esc(t.ruta)} / ${esc(t.veh)} / ${esc(t.and)}</span><span>Pallets / bultos / LPN</span><span><b>${t.pal} / ${t.bul} / ${t.lpn}</b></span><span>Carga</span><span>${t.ini||'—'} a ${t.fin||'—'}</span>${t.pre?`<span>Pallets préstamo</span><span><b>${t.pi+t.pa+t.pm}</b> (IKEA ${t.pi}, azul ${t.pa}, madera ${t.pm})</span>`:''}</div>`;
+h+=`<div class="g" style="margin-top:12px"><label>PPU que ves en el camión<input id="gp"></label><label>Observaciones<input id="go"></label></div>`;
+if(t.st=='CITA'&&!v)h+=`<button class="b" onclick="acc('in')">Autorizar ingreso</button><button class="b r" onclick="acc('rej')">Rechazar</button>`;
+if(t.st=='PATIO'||t.st=='CARGANDO')h+=`<div class="al">El conductor aún no envía los datos de carga. La salida se habilita cuando termine.</div><button class="b w" onclick="acc('ret')">Retener</button>`;
+if(t.st=='LISTO')h+=`<label style="margin-top:12px"><input type="checkbox" id="gv" style="width:auto"> Revisé los datos declarados contra la carga y los pallets</label><button class="b" onclick="acc('out')">Autorizar salida</button><button class="b w" onclick="acc('ret')">Retener</button>`;
+$('gout').innerHTML=h+`<button class="b o" onclick="acc('nov')">Registrar novedad</button></div>`}
+async function acc(x){const g=$('gd').value.trim(),p=$('gp').value,ob=$('go').value;
+if(!g){alert('Escribe tu nombre de controlador.');return}sessionStorage.setItem('gn',g);
+if((x=='in'||x=='out')&&!p.trim()){alert('Ingresa la PPU que ves en el camión.');return}
+if(x=='nov'&&!ob.trim()){alert('Escribe la novedad en Observaciones.');return}
+if(x=='out'&&!$('gv').checked){alert('Marca que revisaste los datos antes de autorizar la salida.');return}
+const r=await api({a:'acc_do',id:cur.id,x,ppu:p,ob,g,v:x=='out'?1:0});await buscar();if(!r.ok)$('gout').insertAdjacentHTML('afterbegin',`<div class="al er">${esc(r.error)}</div>`);lista()}
+async function camara(){if(!('BarcodeDetector' in window)){alert('Este navegador no lee QR. Escribe o elige el ID.');return}
+try{const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}),v=$('vid');v.srcObject=s;v.style.display='block';await v.play();const d=new BarcodeDetector({formats:['qr_code']});
+const L=async()=>{const r=await d.detect(v);if(r.length){$('gid').value=r[0].rawValue.split('|')[0];s.getTracks().forEach(x=>x.stop());v.srcObject=null;v.style.display='none';buscar()}else if(v.srcObject)setTimeout(L,300)};L()}catch(e){alert('No se pudo abrir la cámara.')}}
+if(API.startsWith('PEGA'))net('Falta pegar la URL de la planilla (API)');else lista();
+</script></body></html>
