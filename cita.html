@@ -17,7 +17,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left
 .tl{border-left:3px solid var(--bl);margin-left:6px;padding-left:12px}.tl div{margin:6px 0}.tl time{font-weight:800;margin-right:8px}
 .big{font-size:22px;font-weight:800}.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px}.kv span:nth-child(odd){color:var(--mu)}
 .al{padding:8px 10px;border-radius:6px;background:var(--wa);color:#fff;margin:8px 0;font-weight:600}.al.er{background:var(--er)}.al.ok{background:var(--ok)}
-input,select{font-size:16px}.mu{color:var(--mu);font-size:13px}#err{color:var(--er);font-weight:600;margin:10px 0}.qrb{text-align:center}.qrb svg{width:210px;height:210px;background:#fff;padding:10px;border-radius:8px;margin:8px 0}a{color:var(--bl)}</style></head><body><header><h1>Cita y carga · CD El Sauce</h1><small>Para el conductor responsable de la ruta</small></header>
+input,select{font-size:16px}.mu{color:var(--mu);font-size:13px}#err{color:var(--er);font-weight:600;margin:10px 0}.pre{display:flex;margin-top:3px}.pre span{background:var(--ln);padding:9px 12px;border:1px solid var(--ln);border-radius:6px 0 0 6px;font-weight:800}.pre input{margin-top:0;border-radius:0 6px 6px 0}.qrb{text-align:center}.qrb svg{width:210px;height:210px;background:#fff;padding:10px;border-radius:8px;margin:8px 0}a{color:var(--bl)}</style></head><body><header><h1>Cita y carga · CD El Sauce</h1><small>Para el conductor responsable de la ruta</small></header>
 <main><div id="app"></div></main>
 <script>
 const API='https://script.google.com/macros/s/AKfycbwFqhQrUXklXPa0lmqtMKd-13YgNGi3NCKqKSt8mQGBkibNJEJZWkMgmKcva-wvFi0/exec';
@@ -38,7 +38,6 @@ function formCita(){clearTimeout(poll);$('app').innerHTML=`<form class="card" id
 async function enviar(ev){ev.preventDefault();const t=Object.fromEntries([...new FormData($('f'))].map(([k,v])=>[k,String(v).trim().toUpperCase()])),e=$('err');e.textContent='';
 for(const k of ['cn','cr','ct','em','ppu'])if(!t[k]){e.textContent='Completa los datos del conductor y la patente.';return false}
 if(!t.cext&&!rutOk(t.cr)){e.textContent='El RUT del conductor no es válido. Revísalo o marca «Identificación extranjera».';return false}
-if(t.pr&&!t.pext&&!rutOk(t.pr)){e.textContent='El RUT del peoneta no es válido. Revísalo o marca «Identificación extranjera».';return false}
 t.ppu=t.ppu.replace(/\s/g,'');if(!/^([A-Z]{4}\d{2}|[A-Z]{2}\d{4})$/.test(t.ppu)){e.textContent='La patente debe tener formato ABCD11 o AB1234.';return false}
 const b=$('bt');b.disabled=true;b.textContent='Registrando…';
 try{const r=await api({a:'crear',t});if(!r.ok)throw r.error;sv={id:r.id,ppu:r.ppu};guardar();entrar()}catch(x){e.textContent='No pudimos registrar tu cita. Revisa tu conexión e inténtalo de nuevo.';b.disabled=false;b.textContent='Registrar cita y obtener QR'}return false}
@@ -48,7 +47,7 @@ function nuevo(){sv=null;guardar();formCita()}
 async function entrar(){clearTimeout(poll);if(!sv)return formCita();
 try{const r=await api({a:'drv_get',id:sv.id,ppu:sv.ppu});if(!r.ok){nuevo();return}cur=r.t;pintar();if(cur.st=='CITA'||cur.st=='LISTO')poll=setTimeout(entrar,10000)}catch(e){$('app').insertAdjacentHTML('afterbegin','<div class="al er">SIN CONEXIÓN. REINTENTANDO…</div>');poll=setTimeout(entrar,10000)}}
 const qr=t=>{const q=qrcode(0,'M');q.addData(`${t.id}|${t.ppu}|${t.id.slice(3,11)}`);q.make();return`<div class="card qrb"><div class="big">${esc(t.id)}</div>${q.createSvgTag({cellSize:6,margin:0})}<div>PPU ${esc(t.ppu)}</div></div>`};
-const res=t=>`<div class="kv"><span>Ruta</span><span>${esc(t.ruta)}</span><span>Vehículo</span><span>${esc(t.veh)}</span><span>Andén</span><span>${esc(t.and)}</span><span>Pallets / bultos / LPN</span><span><b>${t.pal} / ${t.bul} / ${t.lpn}</b></span><span>Carga</span><span>${t.ini||'—'} a ${t.fin||'—'}</span>${t.pre?`<span>Pallets préstamo</span><span><b>${t.pi+t.pa+t.pm}</b> (IKEA ${t.pi}, azul ${t.pa}, madera ${t.pm})</span>`:''}</div>`;
+const res=t=>`<div class="kv"><span>Nº de ruta</span><span><b>${esc(t.ruta)}</b></span><span>ID de ruta</span><span><b>${esc(t.idruta)}</b></span><span>Andén</span><span>${esc(t.and)}</span><span>Nº de pallets</span><span><b>${t.pal}</b></span><span>Carga</span><span>${t.ini||'—'} a ${t.fin||'—'}</span></div>`;
 const bn='<button class="b y" onclick="nuevo()">Registrar un viaje nuevo</button>';
 function pintar(){const t=cur,S=t.st;let h='';
 if(S=='CITA')h=qr(t)+'<div class="al">Presenta este QR al controlador de acceso. Cuando autorice tu ingreso, esta pantalla pasará sola al registro de carga.</div>';
@@ -56,12 +55,11 @@ else{h=`<div class="card"><div class="big">${esc(t.id)}</div>${tag(S)}<div style
 if(S=='RECHAZADO'||S=='RETENIDO')h+=`<div class="al er">Tu viaje está ${ST[S][0].toLowerCase()}. Comunícate con el controlador de acceso o con el supervisor.</div>`+(S=='RECHAZADO'?bn:'');
 else if(S=='DESPACHADO')h+='<div class="al ok">Viaje finalizado. Buen viaje.</div>'+bn;
 else if(S=='LISTO')h+=`<div class="card"><h2>Datos enviados</h2>${res(t)}</div>${qr(t)}<div class="al ok">Para salir, presenta este QR al controlador de acceso: revisará tus datos y autorizará la salida.</div>`;
-else h+=`<div class="card"><h2>Datos de la carga</h2><div class="g"><label>Ruta<input id="c_r" value="${esc(t.ruta)}"></label><label>N° de vehículo<input id="c_v" value="${esc(t.veh)}"></label><label>Andén<input id="c_a" value="${esc(t.and)}"></label><label>Pallets<input id="c_p" type="number" min="0" inputmode="numeric" value="${t.pal||''}"></label><label>Bultos<input id="c_b" type="number" min="0" inputmode="numeric" value="${t.bul||''}"></label><label>LPN<input id="c_l" type="number" min="0" inputmode="numeric" value="${t.lpn||''}"></label></div>
-<label style="margin-top:12px"><input type="checkbox" id="c_pre" style="width:auto" ${t.pre?'checked':''} onchange="$('c_pp').style.display=this.checked?'grid':'none'"> Llevo pallets de préstamo</label>
-<div class="g" id="c_pp" style="display:${t.pre?'grid':'none'};margin-top:8px"><label>Pallet IKEA<input id="c_pi" type="number" min="0" value="${t.pi}"></label><label>Pallet azul<input id="c_pa" type="number" min="0" value="${t.pa}"></label><label>Pallet madera<input id="c_pm" type="number" min="0" value="${t.pm}"></label></div>
+else h+=`<div class="card"><h2>Datos de la carga</h2><label>Andén de carga<input id="c_a" value="${esc(t.and)}"></label><label>Nº de pallets<input id="c_p" type="number" min="0" inputmode="numeric" value="${t.pal||''}"></label>
+<label>Nº de ruta<div class="pre"><span>VEH</span><input id="c_r" maxlength="12" inputmode="numeric" placeholder="Completa el número" value="${esc(String(t.ruta||'').replace(/^VEH/,''))}"></div></label><label>ID de ruta<input id="c_i" value="${esc(t.idruta)}"></label>
 <p>Inicio de carga: <b>${t.ini||'—'}</b></p><button class="b" onclick="drv('ini')" ${S=='CARGANDO'?'disabled':''}>Iniciar carga</button><button class="b o" onclick="drv('guardar')">Guardar datos</button><button class="b y" onclick="drv('fin')" ${S!='CARGANDO'?'disabled':''}>Finalizar y enviar</button></div>`}
 $('app').innerHTML=h}
 async function drv(x){if(x=='fin'&&!confirm('Al finalizar ya no podrás editar los datos. ¿Están correctos?'))return;const v=i=>$(i).value;
-try{const r=await api({a:'drv_save',id:cur.id,ppu:cur.ppu,x,t:{ruta:v('c_r'),veh:v('c_v'),and:v('c_a'),pal:v('c_p'),bul:v('c_b'),lpn:v('c_l'),pre:$('c_pre').checked,pi:v('c_pi'),pa:v('c_pa'),pm:v('c_pm')}});if(!r.ok){alert(r.error);return}cur=r.t;pintar();if(cur.st=='LISTO')poll=setTimeout(entrar,10000)}catch(e){alert('SIN CONEXIÓN. REINTENTA.')}}
+try{const r=await api({a:'drv_save',id:cur.id,ppu:cur.ppu,x,t:{ruta:v('c_r'),idruta:v('c_i'),and:v('c_a'),pal:v('c_p')}});if(!r.ok){alert(r.error);return}cur=r.t;pintar();if(cur.st=='LISTO')poll=setTimeout(entrar,10000)}catch(e){alert('SIN CONEXIÓN. REINTENTA.')}}
 if(API.startsWith('PEGA'))$('app').innerHTML='<div class="al er">Falta pegar la URL de la planilla (API).</div>';else entrar();
 </script></body></html>
